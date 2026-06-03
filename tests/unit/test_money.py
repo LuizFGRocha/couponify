@@ -29,3 +29,28 @@ def test_money_rounds_half_up():
 
 def test_money_negative_is_preserved():
     assert money("-5") == Decimal("-5.00")
+
+
+def test_zero_constant():
+    assert ZERO == Decimal("0.00")
+
+
+def test_clamp_non_negative_keeps_positive():
+    assert clamp_non_negative(money("4.20")) == Decimal("4.20")
+
+
+def test_clamp_non_negative_floors_negative():
+    assert clamp_non_negative(money("-1")) == ZERO
+
+
+def test_clamp_non_negative_on_zero():
+    assert clamp_non_negative(ZERO) == ZERO
+
+
+@pytest.mark.parametrize("value,expected", [
+    ("1", "1.00"),
+    ("1.005", "1.01"),
+    ("2.994", "2.99"),
+])
+def test_money_parametrized(value, expected):
+    assert money(value) == Decimal(expected)
