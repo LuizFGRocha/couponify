@@ -36,3 +36,37 @@ def test_min_purchase_above_threshold():
     cart = _cart(Item(name="A", price="60", category="c", seller="s"))
     assert MinPurchase("50").matches(cart) is True
 
+
+def test_has_category_present():
+    cart = _cart(Item(name="A", price="10", category="books", seller="s"))
+    assert HasCategory("books").matches(cart) is True
+
+
+def test_has_category_absent():
+    cart = _cart(Item(name="A", price="10", category="books", seller="s"))
+    assert HasCategory("tech").matches(cart) is False
+
+
+def test_has_brand_present():
+    cart = _cart(Item(name="A", price="10", category="c", seller="s", brand="nike"))
+    assert HasBrand("nike").matches(cart) is True
+
+
+def test_has_brand_absent():
+    cart = _cart(Item(name="A", price="10", category="c", seller="s", brand="nike"))
+    assert HasBrand("adidas").matches(cart) is False
+
+
+def test_has_seller_present():
+    cart = _cart(Item(name="A", price="10", category="c", seller="acme"))
+    assert HasSeller("acme").matches(cart) is True
+
+
+def test_has_seller_absent():
+    cart = _cart(Item(name="A", price="10", category="c", seller="acme"))
+    assert HasSeller("other").matches(cart) is False
+
+
+def test_rules_have_readable_repr():
+    assert "MinPurchase" in repr(MinPurchase("10"))
+    assert "HasCategory" in repr(HasCategory("books"))
