@@ -56,3 +56,47 @@ def test_coupon_percentage_keeps_numeric_value():
     coupon = Coupon(code="OFF10", discount_type=DiscountType.PERCENTAGE, value="10")
     assert coupon.value == Decimal("10")
     assert coupon.discount_type is DiscountType.PERCENTAGE
+
+
+def test_coupon_percentage_out_of_range():
+    with pytest.raises(ValueError):
+        Coupon(code="BAD", discount_type=DiscountType.PERCENTAGE, value="150")
+
+
+def test_coupon_fixed_value_is_money():
+    coupon = Coupon(code="MINUS5", discount_type=DiscountType.FIXED, value="5")
+    assert coupon.value == Decimal("5.00")
+
+
+def test_coupon_rejects_negative_fixed_value():
+    with pytest.raises(ValueError):
+        Coupon(code="BAD", discount_type=DiscountType.FIXED, value="-5")
+
+
+def test_coupon_rejects_empty_code():
+    with pytest.raises(ValueError):
+        Coupon(code="", discount_type=DiscountType.FIXED, value="5")
+
+
+def test_item_scope_requires_target_category():
+    with pytest.raises(ValueError):
+        Coupon(code="ITEM", discount_type=DiscountType.PERCENTAGE, value="10",
+               scope=CouponScope.ITEM)
+
+
+def test_coupon_defaults_to_always_applies():
+    coupon = Coupon(code="C", discount_type=DiscountType.FIXED, value="1")
+    assert len(coupon.rules) == 1
+    assert isinstance(coupon.rules[0], AlwaysApplies)
+
+
+def test_coupon_keeps_custom_rules():
+    coupon = Coupon(code="C", discount_type=DiscountType.FIXED, value="1",
+                    rules=[MinPurchase("50")])
+    assert isinstance(coupon.rules[0], MinPurchase)
+
+
+def test_coupon_accepts_string_enums():
+    coupon = Coupon(code="C", discount_type="fixed", value="1", scope="whole_cart")
+    assert coupon.discount_type is DiscountType.FIXED
+    assert coupon.scope is CouponScope.WHOLE_CART
