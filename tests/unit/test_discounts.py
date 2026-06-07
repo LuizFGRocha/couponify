@@ -49,3 +49,41 @@ def test_inactive_coupon_grants_nothing():
     coupon = Coupon(code="OFF10", discount_type=DiscountType.PERCENTAGE, value="10",
                     active=False)
     assert compute_discount(coupon, cart) == Decimal("0.00")
+
+
+def test_unmatched_rule_grants_nothing():
+    cart = _cart((Item(name="A", price="40", category="c", seller="s"), 1))
+    coupon = Coupon(code="OFF10", discount_type=DiscountType.PERCENTAGE, value="10",
+                    rules=[MinPurchase("50")])
+    assert compute_discount(coupon, cart) == Decimal("0.00")
+
+
+def test_empty_base_grants_nothing():
+    coupon = Coupon(code="OFF10", discount_type=DiscountType.PERCENTAGE, value="10")
+    assert compute_discount(coupon, Cart()) == Decimal("0.00")
+
+
+def test_zero_percentage():
+    cart = _cart((Item(name="A", price="100", category="c", seller="s"), 1))
+    coupon = Coupon(code="ZERO", discount_type=DiscountType.PERCENTAGE, value="0")
+    assert compute_discount(coupon, cart) == Decimal("0.00")
+
+
+def test_full_percentage():
+    cart = _cart((Item(name="A", price="100", category="c", seller="s"), 1))
+    coupon = Coupon(code="ALL", discount_type=DiscountType.PERCENTAGE, value="100")
+    assert compute_discount(coupon, cart) == Decimal("100.00")
+
+
+def test_percentage_is_quantized():
+    cart = _cart((Item(name="A", price="33.33", category="c", seller="s"), 1))
+    coupon = Coupon(code="OFF10", discount_type=DiscountType.PERCENTAGE, value="10")
+    # 10% of 33.33 = 3.333 -> 3.33
+    assert compute_discount(coupon, cart) == Decimal("3.33")
+
+
+def test_item_scope_with_no_matching_items():
+    cart = _cart((Item(name="Phone", price="100", category="tech", seller="s"), 1))
+    coupon = Coupon(code="BOOKS", discount_type=DiscountType.PERCENTAGE, value="20",
+                    scope=CouponScope.ITEM, target_category="books")
+    assert compute_discount(coupon, cart) == Decimal("0.00")
