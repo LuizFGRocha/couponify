@@ -65,3 +65,55 @@ def test_coupon_percentage_roundtrip(db_path):
     assert loaded.discount_type is DiscountType.PERCENTAGE
     assert loaded.value == Decimal("10")
     assert loaded.description == "ten percent"
+
+
+def test_coupon_fixed_roundtrip(db_path):
+    _, coupons = _repos(db_path)
+    coupons.add(Coupon(code="MINUS5", discount_type=DiscountType.FIXED, value="5"))
+    loaded = coupons.get_by_code("MINUS5")
+    assert loaded.discount_type is DiscountType.FIXED
+    assert loaded.value == Decimal("5.00")
+
+
+def test_coupon_min_purchase_rule_is_persisted(db_path):
+    _, coupons = _repos(db_path)
+    coupons.add(Coupon(code="C", discount_type=DiscountType.FIXED, value="5",
+                       rules=[MinPurchase("50")]))
+    loaded = coupons.get_by_code("C")
+    assert isinstance(loaded.rules[0], MinPurchase)
+    assert loaded.rules[0].min_value == Decimal("50.00")
+
+
+def test_coupon_without_min_purchase_defaults_to_always(db_path):
+    _, coupons = _repos(db_path)
+    coupons.add(Coupon(code="C", discount_type=DiscountType.FIXED, value="5"))
+    loaded = coupons.get_by_code("C")
+    assert isinstance(loaded.rules[0], AlwaysApplies)
+
+
+def test_coupon_item_scope_roundtrip(db_path):
+    _, coupons = _repos(db_path)
+    coupons.add(Coupon(code="BOOKS", discount_type=DiscountType.PERCENTAGE, value="20",
+                       scope=CouponScope.ITEM, target_category="books"))
+    loaded = coupons.get_by_code("BOOKS")
+    assert loaded.scope is CouponScope.ITEM
+    assert loaded.target_category == "books"
+
+
+def test_coupon_set_active_toggle(db_path):
+    _, coupons = _repos(db_path)
+    coupons.add(Coupon(code="C", discount_type=DiscountType.FIXED, value="5"))
+    assert coupons.set_active("C", False) is True
+    assert coupons.get_by_code("C").active is False
+
+
+def test_coupon_get_missing_returns_none(db_path):
+    _, coupons = _repos(db_path)
+    assert coupons.get_by_code("NOPE") is None
+
+
+def test_coupon_delete(db_path):
+    _, coupons = _repos(db_path)
+    coupons.add(Coupon(code="C", discount_type=DiscountType.FIXED, value="5"))
+    assert coupons.delete("C") is True
+    assert coupons.get_by_code("C") is None
