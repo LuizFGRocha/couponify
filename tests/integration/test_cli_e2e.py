@@ -45,3 +45,34 @@ def test_checkout_without_coupon(capsys, db_path):
     assert code == 0
     assert "Subtotal: R$ 100.00" in out
     assert "Total: R$ 100.00" in out
+
+
+def test_apply_invalid_coupon_fails(capsys, db_path):
+    code, out = run(capsys, db_path, "apply-coupon", "--code", "NOPE")
+    assert code == 1
+    assert "invalido ou inexistente" in out
+
+
+def test_add_to_cart_unknown_item_fails(capsys, db_path):
+    code, out = run(capsys, db_path, "add-to-cart", "--item-id", "42")
+    assert code == 1
+    assert "nao encontrado" in out
+
+
+def test_state_persists_across_invocations(capsys, db_path):
+    run(capsys, db_path, "add-item", "--name", "Phone", "--price", "100",
+        "--category", "tech", "--seller", "store")
+    run(capsys, db_path, "add-to-cart", "--item-id", "1")
+    # Fresh process / fresh service, same database file.
+    code, out = run(capsys, db_path, "show-cart")
+    assert "1x Phone" in out
+
+
+def test_clear_cart(capsys, db_path):
+    run(capsys, db_path, "add-item", "--name", "Phone", "--price", "100",
+        "--category", "tech", "--seller", "store")
+    run(capsys, db_path, "add-to-cart", "--item-id", "1")
+    code, out = run(capsys, db_path, "clear-cart")
+    assert "esvaziado" in out
+    _, out = run(capsys, db_path, "show-cart")
+    assert "vazio" in out
