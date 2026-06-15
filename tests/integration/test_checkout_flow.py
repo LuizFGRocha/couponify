@@ -50,3 +50,32 @@ def test_item_scope_coupon_flow(capsys, db_path):
     assert "Subtotal: R$ 150.00" in out
     assert "Desconto: R$ 10.00" in out
     assert "Total: R$ 140.00" in out
+
+
+def test_inactive_coupon_is_ignored_on_checkout(capsys, db_path):
+    _seed_phone(capsys, db_path)
+    run(capsys, db_path, "add-to-cart", "--item-id", "1")
+    run(capsys, db_path, "add-coupon", "--code", "OFF10", "--type", "percentage",
+        "--value", "10", "--inactive")
+    run(capsys, db_path, "apply-coupon", "--code", "OFF10")
+    code, out = run(capsys, db_path, "checkout")
+    assert "Desconto: R$ 0.00" in out
+    assert "Total: R$ 100.00" in out
+
+
+def test_min_purchase_coupon_respected(capsys, db_path):
+    _seed_phone(capsys, db_path, price="40")
+    run(capsys, db_path, "add-to-cart", "--item-id", "1")
+    run(capsys, db_path, "add-coupon", "--code", "BIG", "--type", "percentage",
+        "--value", "10", "--min-purchase", "50")
+    run(capsys, db_path, "apply-coupon", "--code", "BIG")
+    # Subtotal 40 < min purchase 50 -> no discount.
+    code, out = run(capsys, db_path, "checkout")
+    assert "Desconto: R$ 0.00" in out
+
+
+def test_list_coupons_shows_registered(capsys, db_path):
+    run(capsys, db_path, "add-coupon", "--code", "OFF10",
+        "--type", "percentage", "--value", "10")
+    code, out = run(capsys, db_path, "list-coupons")
+    assert "OFF10" in out
