@@ -28,3 +28,26 @@ def test_percentage_discount_within_base(price, quantity, pct):
     coupon = Coupon(code="P", discount_type=DiscountType.PERCENTAGE, value=pct)
     discount = compute_discount(coupon, cart)
     assert ZERO <= discount <= cart.subtotal()
+
+
+@given(price=prices, quantity=quantities, value=prices)
+def test_fixed_discount_within_base(price, quantity, value):
+    cart = _single_item_cart(price, quantity)
+    coupon = Coupon(code="F", discount_type=DiscountType.FIXED, value=value)
+    discount = compute_discount(coupon, cart)
+    assert ZERO <= discount <= cart.subtotal()
+
+
+@given(price=prices, quantity=quantities, pct=percentages)
+def test_total_between_zero_and_subtotal(price, quantity, pct):
+    cart = _single_item_cart(price, quantity)
+    cart.apply_coupon(Coupon(code="P", discount_type=DiscountType.PERCENTAGE, value=pct))
+    assert ZERO <= cart.total() <= cart.subtotal()
+    expected = clamp_non_negative(cart.subtotal() - cart.total_discount())
+    assert cart.total() == expected
+
+
+@given(st.integers(min_value=-10**9, max_value=10**9))
+def test_money_quantization_is_idempotent(n):
+    value = Decimal(n) / 100
+    assert money(money(value)) == money(value)
