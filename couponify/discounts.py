@@ -43,7 +43,8 @@ def compute_discount(coupon: Coupon, cart) -> Decimal:
 
     Returns zero when the coupon is inactive, when any of its rules does not
     match, or when there is nothing to discount. A fixed discount never exceeds
-    the base it applies to.
+    the base it applies to, and any discount is capped at ``coupon.max_discount``
+    when that cap is set.
     """
     if not coupon.active:
         return ZERO
@@ -58,5 +59,8 @@ def compute_discount(coupon: Coupon, cart) -> Decimal:
         amount = _percentage_amount(base, coupon.value)
     else:
         amount = _fixed_amount(base, coupon.value)
+
+    if coupon.max_discount is not None:
+        amount = min(amount, coupon.max_discount)
 
     return clamp_non_negative(amount)
