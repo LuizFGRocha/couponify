@@ -87,3 +87,26 @@ def test_item_scope_with_no_matching_items():
     coupon = Coupon(code="BOOKS", discount_type=DiscountType.PERCENTAGE, value="20",
                     scope=CouponScope.ITEM, target_category="books")
     assert compute_discount(coupon, cart) == Decimal("0.00")
+
+
+def test_max_discount_caps_percentage():
+    cart = _cart((Item(name="A", price="100", category="c", seller="s"), 1))
+    coupon = Coupon(code="OFF50", discount_type=DiscountType.PERCENTAGE, value="50",
+                    max_discount="30")
+    # 50% of 100 = 50, but capped at 30.
+    assert compute_discount(coupon, cart) == Decimal("30.00")
+
+
+def test_max_discount_caps_fixed():
+    cart = _cart((Item(name="A", price="100", category="c", seller="s"), 1))
+    coupon = Coupon(code="MINUS80", discount_type=DiscountType.FIXED, value="80",
+                    max_discount="25")
+    assert compute_discount(coupon, cart) == Decimal("25.00")
+
+
+def test_max_discount_not_reached_keeps_amount():
+    cart = _cart((Item(name="A", price="100", category="c", seller="s"), 1))
+    coupon = Coupon(code="OFF10", discount_type=DiscountType.PERCENTAGE, value="10",
+                    max_discount="30")
+    # 10% of 100 = 10, below the 30 cap, so the full amount is granted.
+    assert compute_discount(coupon, cart) == Decimal("10.00")

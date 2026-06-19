@@ -13,6 +13,16 @@ from .models import Coupon, CouponScope, DiscountType
 from .money import ZERO, clamp_non_negative, money
 
 
+def _percentage_amount(base: Decimal, value: Decimal) -> Decimal:
+    """Return ``value`` percent of ``base`` as money."""
+    return money(base * value / Decimal(100))
+
+
+def _fixed_amount(base: Decimal, value: Decimal) -> Decimal:
+    """Return a fixed discount, never larger than the base it applies to."""
+    return base if value > base else money(value)
+
+
 def _discount_base(coupon: Coupon, cart) -> Decimal:
     """Return the monetary base the discount is computed over.
 
@@ -33,7 +43,8 @@ def compute_discount(coupon: Coupon, cart) -> Decimal:
 
     Returns zero when the coupon is inactive, when any of its rules does not
     match, or when there is nothing to discount. A fixed discount never exceeds
-    the base it applies to.
+    the base it applies to, and any discount is capped at ``coupon.max_discount``
+    when that cap is set.
     """
     if not coupon.active:
         return ZERO
@@ -45,10 +56,11 @@ def compute_discount(coupon: Coupon, cart) -> Decimal:
         return ZERO
 
     if coupon.discount_type is DiscountType.PERCENTAGE:
-        amount = money(base * coupon.value / Decimal(100))
+        amount = _percentage_amount(base, coupon.value)
     else:
-        amount = money(coupon.value)
-        if amount > base:
-            amount = base
+        amount = _fixed_amount(base, coupon.value)
+
+    if coupon.max_discount is not None:
+        amount = min(amount, coupon.max_discount)
 
     return clamp_non_negative(amount)
