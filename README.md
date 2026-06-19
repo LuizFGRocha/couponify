@@ -1,5 +1,8 @@
 # Couponify
 
+[![CI](https://github.com/LuizFGRocha/couponify/actions/workflows/ci.yml/badge.svg)](https://github.com/LuizFGRocha/couponify/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/LuizFGRocha/couponify/branch/main/graph/badge.svg)](https://codecov.io/gh/LuizFGRocha/couponify)
+
 Simulador de carrinho de compras de um marketplace com **descontos dinâmicos**,
 construído para evidenciar como os testes de software sustentam a manutenção do
 sistema diante de mudanças constantes nas regras de negócio.
@@ -90,6 +93,22 @@ pytest
 
 # Com relatório de cobertura (falha se ficar abaixo de 80%)
 pytest --cov=couponify --cov-report=term-missing --cov-fail-under=80
+```
+
+### Testes de propriedade (Hypothesis)
+
+Os testes em `tests/unit/test_property_discounts.py` verificam invariantes do
+motor de desconto com entradas geradas aleatoriamente (ex.: o desconto sempre
+fica entre zero e o subtotal). Eles rodam junto com o `pytest`.
+
+### Testes de mutação (mutmut)
+
+Os testes de mutação introduzem pequenas alterações no código e verificam se a
+suíte as detecta. A configuração está em `setup.cfg`.
+
+```bash
+mutmut run        # executa a campanha de mutação
+mutmut results    # mostra os mutantes sobreviventes
 ```
 
 ## Estrutura do Projeto
