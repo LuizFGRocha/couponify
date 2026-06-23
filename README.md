@@ -135,3 +135,9 @@ tests/
 A cada `push` ou `pull request`, o **GitHub Actions** executa toda a suíte de
 testes em **Linux, macOS e Windows** e mede a cobertura. O relatório de cobertura
 é enviado ao **Codecov**.
+
+## Uso de IA
+
+Utilizamos ferramentas de Inteligência Artificial para apoiar o desenvolvimento e a refatoração de código, a identificação e correção de bugs e a avaliação da qualidade dos testes.
+
+As decisões de projeto, implementação e validação final permaneceram sob responsabilidade dos membros do grupo. A principal ferramenta utilizada foi o GitHub Copilot, com uso predominante do modelo Claude.
