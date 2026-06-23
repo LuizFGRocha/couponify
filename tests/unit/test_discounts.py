@@ -35,13 +35,14 @@ def test_fixed_never_exceeds_base():
 
 def test_item_scope_targets_only_matching_category():
     cart = _cart(
-        (Item(name="Book", price="50", category="books", seller="s"), 1),
+        (Item(name="Book1", price="50", category="books", seller="s"), 1),
+        (Item(name="Book2", price="50", category="books", seller="s"), 1),
         (Item(name="Phone", price="100", category="tech", seller="s"), 1),
     )
     coupon = Coupon(code="BOOKS20", discount_type=DiscountType.PERCENTAGE, value="20",
                     scope=CouponScope.ITEM, target_category="books")
-    # 20% of the 50.00 worth of books only.
-    assert compute_discount(coupon, cart) == Decimal("10.00")
+    # 20% of the 100.00 worth of books only.
+    assert compute_discount(coupon, cart) == Decimal("20.00")
 
 
 def test_inactive_coupon_grants_nothing():

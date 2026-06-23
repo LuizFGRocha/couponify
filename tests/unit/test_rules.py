@@ -67,6 +67,21 @@ def test_has_seller_absent():
     assert HasSeller("other").matches(cart) is False
 
 
-def test_rules_have_readable_repr():
-    assert "MinPurchase" in repr(MinPurchase("10"))
-    assert "HasCategory" in repr(HasCategory("books"))
+def test_min_purchase_repr_is_readable():
+    assert repr(MinPurchase("10")) == "MinPurchase(10.00)"
+    
+    
+def test_has_brand_repr_is_readable():
+    assert repr(HasBrand("nike")) == "HasBrand('nike')"
+    
+    
+def test_has_seller_repr_is_readable():
+    assert repr(HasSeller("acme")) == "HasSeller('acme')"
+    
+    
+def test_has_category_repr_is_readable():
+    assert repr(HasCategory("books")) == "HasCategory('books')"
+    
+    
+def test_always_applies_repr_is_readable():
+    assert repr(AlwaysApplies()) == "AlwaysApplies()"
